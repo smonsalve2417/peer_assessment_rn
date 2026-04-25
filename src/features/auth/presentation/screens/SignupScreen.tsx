@@ -1,128 +1,205 @@
-import React, { useRef, useState } from "react";
-import { Keyboard, TextInput as RNTextInput } from "react-native";
-import { Button, HelperText, Snackbar, Surface, Text, TextInput } from "react-native-paper";
+import { BlurView } from "expo-blur";
+import React, { useState } from "react";
+import {
+  Dimensions,
+  ImageBackground,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { ActivityIndicator, Snackbar, Text } from "react-native-paper";
 import { useAuth } from "../context/authContext";
+import TextBox from "../components/TextBox";
+import { ButtonHome } from "../components/ButtonHome";
 
 interface FormErrors {
+  name?: string;
   email?: string;
   password?: string;
 }
 
+const backgroundImage = require("../../../../../assets/images/background.jpg");
+const { width, height } = Dimensions.get("window");
+
 export default function SignupScreen({ navigation }: { navigation: any }) {
   const { signup, error, clearError } = useAuth();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [obscurePassword, setObscurePassword] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const showBackground = true;
 
-  const passwordRef = useRef<RNTextInput>(null);
-
-  const validate = (): boolean => {
+  const handleSubmit = async () => {
+    Keyboard.dismiss();
     const newErrors: FormErrors = {};
+    const trimmedName = name.trim();
     const trimmedEmail = email.trim();
+
+    if (!trimmedName) {
+      newErrors.name = "Enter name";
+    }
 
     if (!trimmedEmail) {
       newErrors.email = "Enter email";
     } else if (!trimmedEmail.includes("@")) {
-      newErrors.email = "Enter a valid email address";
+      newErrors.email = "Enter valid email address";
     }
 
     if (!password) {
       newErrors.password = "Enter password";
-    } else if (password.length < 6) {
-      newErrors.password = "Password should have at least 6 characters";
+    } else if (password.length < 8) {
+      newErrors.password = "Password should have at least 8 characters";
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    if (Object.keys(newErrors).length > 0) return;
 
-  const handleSubmit = async () => {
-    Keyboard.dismiss();
-    if (!validate()) return;
-
-    setLoading(true);
-    await signup(email.trim(), password).finally(() => setLoading(false));
+    try {
+      setLoading(true);
+      await signup(trimmedName, trimmedEmail, password);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Surface testID="signup-screen" style={{ flex: 1, justifyContent: "center", padding: 20 }}>
-      <Text variant="headlineMedium" style={{ marginBottom: 20, textAlign: "center" }}>
-        Create an Account
-      </Text>
+    <View style={styles.container}>
+      {showBackground ? (
+        <ImageBackground
+          source={backgroundImage}
+          resizeMode="cover"
+          style={styles.fullScreen}
+        />
+      ) : null}
 
-      {/* EMAIL */}
-      <TextInput
-        testID="signup-email-input"
-        label="Email"
-        value={email}
-        onChangeText={(v) => {
-          setEmail(v);
-          if (errors.email) setErrors((e) => ({ ...e, email: undefined }));
-        }}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        error={!!errors.email}
-        returnKeyType="next"
-        onSubmitEditing={() => passwordRef.current?.focus()}
-        style={{ marginBottom: 4 }}
-      />
-      {errors.email && (
-        <HelperText testID="signup-email-error" type="error" visible>
-          {errors.email}
-        </HelperText>
-      )}
+      <BlurView intensity={40} tint="dark" style={styles.fullScreen} />
+      <View style={styles.overlay} />
 
-      {/* PASSWORD */}
-      <TextInput
-        testID="signup-password-input"
-        ref={passwordRef}
-        label="Password"
-        value={password}
-        onChangeText={(v) => {
-          setPassword(v);
-          if (errors.password) setErrors((e) => ({ ...e, password: undefined }));
-        }}
-        secureTextEntry={obscurePassword}
-        right={
-          <TextInput.Icon
-            icon={obscurePassword ? "eye-outline" : "eye-off-outline"}
-            onPress={() => setObscurePassword((v) => !v)}
-          />
-        }
-        error={!!errors.password}
-        returnKeyType="done"
-        onSubmitEditing={handleSubmit}
-        style={{ marginBottom: 4 }}
-      />
-      {errors.password && (
-        <HelperText testID="signup-password-error" type="error" visible>
-          {errors.password}
-        </HelperText>
-      )}
-
-      <Button
-        testID="signup-button"
-        mode="contained"
-        onPress={handleSubmit}
-        loading={loading}
-        disabled={loading}
-        style={{ marginBottom: 10, marginTop: 12 }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.fullScreen}
       >
-        Sign Up
-      </Button>
+        <View style={styles.appBar}>
+          {navigation?.canGoBack?.() ? (
+            <Pressable onPress={navigation.goBack} style={styles.backButton}>
+              <Text style={styles.backText}>{"<"}</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
-      <Button
-        testID="go-to-login-button"
-        mode="text"
-        onPress={() => navigation.goBack()}
-      >
-        Already have an account? Log In
-      </Button>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View testID="signup-screen" style={styles.formContainer}>
+            <Text variant="headlineMedium" style={styles.title}>
+              Signup
+            </Text>
 
-      {/* ERROR SNACKBAR */}
+            <Text variant="bodyMedium" style={styles.subtitle}>
+              Create your account
+            </Text>
+
+            <View style={styles.spacer} />
+
+            <TextBox
+              hintText="Name"
+              value={name}
+              onChangeText={(text: string) => {
+                setName(text);
+                if (errors.name) {
+                  setErrors((prev) => ({ ...prev, name: undefined }));
+                }
+              }}
+              validatorFunc={(value) => {
+                if (!value) {
+                  return "Enter name";
+                }
+                return null;
+              }}
+              error={errors.name ?? null}
+              setError={(fieldError) =>
+                setErrors((prev) => ({
+                  ...prev,
+                  name: fieldError ?? undefined,
+                }))
+              }
+            />
+
+            <TextBox
+              hintText="Email"
+              value={email}
+              onChangeText={(text: string) => {
+                setEmail(text);
+                if (errors.email) {
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }
+              }}
+              validatorFunc={(value) => {
+                if (!value) {
+                  return "Enter email";
+                }
+                if (!value.includes("@")) {
+                  return "Enter valid email address";
+                }
+                return null;
+              }}
+              error={errors.email ?? null}
+              setError={(fieldError) =>
+                setErrors((prev) => ({
+                  ...prev,
+                  email: fieldError ?? undefined,
+                }))
+              }
+            />
+
+            <TextBox
+              hintText="Password"
+              value={password}
+              onChangeText={(text: string) => {
+                setPassword(text);
+                if (errors.password) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
+              obscureText
+              validatorFunc={(value) => {
+                if (!value) {
+                  return "Enter password";
+                }
+                if (value.length < 8) {
+                  return "Password should have at least 8 characters";
+                }
+                return null;
+              }}
+              error={errors.password ?? null}
+              setError={(fieldError) =>
+                setErrors((prev) => ({
+                  ...prev,
+                  password: fieldError ?? undefined,
+                }))
+              }
+            />
+
+            <View style={styles.spacer} />
+
+            <ButtonHome text="Signup" onPressed={handleSubmit} />
+
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator animating color="white" />
+              </View>
+            ) : null}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
       <Snackbar
         testID="signup-error-snackbar"
         visible={!!error}
@@ -132,6 +209,72 @@ export default function SignupScreen({ navigation }: { navigation: any }) {
       >
         {error}
       </Snackbar>
-    </Surface>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  fullScreen: {
+    width: width,
+    height: height,
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  appBar: {
+    height: 72,
+    justifyContent: "flex-end",
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backText: {
+    color: "white",
+    fontSize: 28,
+    lineHeight: 30,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  formContainer: {
+    width: "100%",
+    maxWidth: 450,
+    alignSelf: "center",
+  },
+  title: {
+    marginBottom: 8,
+    color: "white",
+    fontSize: 50,
+    fontWeight: "700",
+    textAlign: "left",
+  },
+  subtitle: {
+    color: "rgba(255, 255, 255, 0.75)",
+    fontSize: 15,
+    marginTop: 6,
+    textAlign: "left",
+  },
+  spacer: {
+    height: 20,
+  },
+  loadingContainer: {
+    marginTop: 14,
+    alignItems: "center",
+  },
+});

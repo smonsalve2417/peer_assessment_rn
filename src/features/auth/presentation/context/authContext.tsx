@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { useDI } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
@@ -12,19 +18,24 @@ export type AuthContextType = {
   error: string | null;
   clearError: () => void;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   validate: (email: string, validationCode: string) => Promise<string | null>;
   getLoggedUser: () => Promise<any | null>;
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const di = useDI();
 
-  const authRepo = useMemo(() => di.resolve<AuthRepository>(TOKENS.AuthRepo), [di]);
+  const authRepo = useMemo(
+    () => di.resolve<AuthRepository>(TOKENS.AuthRepo),
+    [di],
+  );
 
   const [loggedUser, setLoggedUser] = useState<AuthUser | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -34,7 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearError = () => setError(null);
 
   useEffect(() => {
-    authRepo.getCurrentUser()
+    authRepo
+      .getCurrentUser()
       .then((user) => {
         setLoggedUser(user);
         setIsLoggedIn(!!user);
@@ -56,11 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string) => {
+  const signup = async (name: string, email: string, password: string) => {
     clearError();
     try {
       setLoading(true);
-      await authRepo.signup(email, password);
+      await authRepo.signup(name, email, password);
       setIsLoggedIn(true);
     } catch (err: any) {
       setError(err?.message ?? "Signup failed");
@@ -102,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return err?.message ?? "Validation failed";
     }
     return null;
-  }
+  };
 
   const getLoggedUser = async () => {
     try {
@@ -110,10 +122,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       return null;
     }
-  }
+  };
 
   return (
-    <AuthContext.Provider value={{ loggedUser, isLoggedIn, loading, error, clearError, login, signup, logout, forgotPassword, validate, getLoggedUser }}>
+    <AuthContext.Provider
+      value={{
+        loggedUser,
+        isLoggedIn,
+        loading,
+        error,
+        clearError,
+        login,
+        signup,
+        logout,
+        forgotPassword,
+        validate,
+        getLoggedUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

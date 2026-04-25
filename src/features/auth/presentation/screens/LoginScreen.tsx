@@ -1,34 +1,46 @@
-import React, { useRef, useState } from "react";
-import { Keyboard, TextInput as RNTextInput, View } from "react-native";
-import { Button, HelperText, Snackbar, Surface, Text, TextInput } from "react-native-paper";
+import { BlurView } from "expo-blur";
+import React, { useState } from "react";
+import {
+  Dimensions,
+  ImageBackground,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { ActivityIndicator, Snackbar, Text } from "react-native-paper";
 import { useAuth } from "../context/authContext";
+import TextBox from "../components/TextBox";
+import { ButtonHome } from "../components/ButtonHome";
 
 interface FormErrors {
   email?: string;
   password?: string;
 }
+const backgroundImage = require("../../../../../assets/images/background.jpg");
+const { width, height } = Dimensions.get("window");
 
 export default function LoginScreen({ navigation }: { navigation: any }) {
   const { login, error, clearError } = useAuth();
 
-  const [email, setEmail] = useState("a@a.com");
+  const [email, setEmail] = useState("augustosalazar@uninorte.edu.co");
   const [password, setPassword] = useState("ThePassword!1");
-  const [obscurePassword, setObscurePassword] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const showBackground = true;
 
-  const passwordRef = useRef<RNTextInput>(null);
-
-  const validate = (): boolean => {
+  const handleSubmit = async () => {
+    Keyboard.dismiss();
     const newErrors: FormErrors = {};
     const trimmedEmail = email.trim();
-
-    console.log('validating email:', email);
 
     if (!trimmedEmail) {
       newErrors.email = "Enter email";
     } else if (!trimmedEmail.includes("@")) {
-      newErrors.email = "Enter a valid email address";
+      newErrors.email = "Enter valid email address";
     }
 
     if (!password) {
@@ -38,98 +50,124 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    Keyboard.dismiss();
-    if (!validate()) return;
+    if (Object.keys(newErrors).length > 0) return;
 
     try {
       setLoading(true);
-      await login(email.trim(), password);
+      await login(trimmedEmail, password);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Surface testID="login-screen" style={{ flex: 1, justifyContent: "center", padding: 20 }}>
-      <Text variant="headlineMedium" style={{ marginBottom: 20, textAlign: "center" }}>
-        Welcome! Please log in
-      </Text>
+    <View style={styles.container}>
+      {showBackground ? (
+        <ImageBackground
+          source={backgroundImage}
+          resizeMode="cover"
+          style={styles.fullScreen}
+        />
+      ) : null}
 
-      {/* EMAIL */}
-      <TextInput
-        testID="email-input"
-        label="Email"
-        value={email}
-        onChangeText={(v) => {
-          setEmail(v);
-          if (errors.email) setErrors((e) => ({ ...e, email: undefined }));
-        }}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        error={!!errors.email}
-        returnKeyType="next"
-        onSubmitEditing={() => passwordRef.current?.focus()}
-        style={{ marginBottom: 4 }}
-      />
-      <HelperText type="error" visible={!!errors.email}>
-        {errors.email}
-      </HelperText>
+      <BlurView intensity={40} tint="dark" style={styles.fullScreen} />
+      <View style={styles.overlay} />
 
-      {/* PASSWORD */}
-      <TextInput
-        testID="password-input"
-        ref={passwordRef}
-        label="Password"
-        value={password}
-        onChangeText={(v) => {
-          setPassword(v);
-          if (errors.password) setErrors((e) => ({ ...e, password: undefined }));
-        }}
-        secureTextEntry={obscurePassword}
-        right={
-          <TextInput.Icon
-            icon={obscurePassword ? "eye-outline" : "eye-off-outline"}
-            onPress={() => setObscurePassword((v) => !v)}
-          />
-        }
-        error={!!errors.password}
-        returnKeyType="done"
-        onSubmitEditing={handleSubmit}
-        style={{ marginBottom: 4 }}
-      />
-      <HelperText type="error" visible={!!errors.password}>
-        {errors.password}
-      </HelperText>
-
-      {/* FORGOT PASSWORD */}
-      <View style={{ alignItems: "flex-end", marginBottom: 20 }}>
-        <Button mode="text" compact onPress={() => navigation.navigate("ForgotPassword")}>
-          Forgot password?
-        </Button>
-      </View>
-
-      <Button
-        testID="login-button"
-        mode="contained"
-        onPress={handleSubmit}
-        loading={loading}
-        disabled={loading}
-        style={{ marginBottom: 10 }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.fullScreen}
       >
-        Log In
-      </Button>
+        <View style={styles.appBar}>
+          {navigation?.canGoBack?.() ? (
+            <Pressable onPress={navigation.goBack} style={styles.backButton}>
+              <Text style={styles.backText}>{"<"}</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
-      <Button
-        testID="create-account-button"
-        mode="text" onPress={() => navigation.navigate("Signup")}>
-        Don&apos;t have an account? Sign Up
-      </Button>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.formContainer}>
+            <Text variant="headlineMedium" style={styles.title}>
+              Let's get you signed in
+            </Text>
 
-      {/* ERROR SNACKBAR */}
+            <Text variant="bodyMedium" style={styles.subtitle}>
+              Sign in to your account
+            </Text>
+
+            <View style={styles.spacer} />
+
+            <TextBox
+              hintText="Email"
+              value={email}
+              onChangeText={(text: string) => {
+                setEmail(text);
+                if (errors.email) {
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }
+              }}
+              validatorFunc={(value) => {
+                if (!value) {
+                  return "Enter email";
+                }
+                if (!value.includes("@")) {
+                  return "Enter valid email address";
+                }
+                return null;
+              }}
+              error={errors.email ?? null}
+              setError={(fieldError) =>
+                setErrors((prev) => ({
+                  ...prev,
+                  email: fieldError ?? undefined,
+                }))
+              }
+            />
+
+            <TextBox
+              hintText="Password"
+              value={password}
+              onChangeText={(text: string) => {
+                setPassword(text);
+                if (errors.password) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
+              obscureText
+              validatorFunc={(value) => {
+                if (!value) {
+                  return "Enter password";
+                }
+                if (value.length < 6) {
+                  return "Password should have at least 6 characters";
+                }
+                return null;
+              }}
+              error={errors.password ?? null}
+              setError={(fieldError) =>
+                setErrors((prev) => ({
+                  ...prev,
+                  password: fieldError ?? undefined,
+                }))
+              }
+            />
+
+            <View style={styles.spacer} />
+
+            <ButtonHome text="Log in" onPressed={handleSubmit} />
+
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator animating color="white" />
+              </View>
+            ) : null}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
       <Snackbar
         visible={!!error}
         onDismiss={clearError}
@@ -138,6 +176,71 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
       >
         {error}
       </Snackbar>
-    </Surface>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  fullScreen: {
+    width: width,
+    height: height,
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  appBar: {
+    height: 72,
+    justifyContent: "flex-end",
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backText: {
+    color: "white",
+    fontSize: 28,
+    lineHeight: 30,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  formContainer: {
+    width: "100%",
+    maxWidth: 450,
+    alignSelf: "center",
+  },
+  title: {
+    color: "white",
+    fontSize: 30,
+    fontWeight: "700",
+    textAlign: "left",
+  },
+  subtitle: {
+    color: "rgba(255, 255, 255, 0.75)",
+    fontSize: 15,
+    marginTop: 6,
+    textAlign: "left",
+  },
+  spacer: {
+    height: 20,
+  },
+  loadingContainer: {
+    marginTop: 14,
+    alignItems: "center",
+  },
+});

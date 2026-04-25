@@ -13,8 +13,8 @@ export class AuthRepositoryImpl implements AuthRepository {
     return this.dataSource.login(email, password);
   }
 
-  async signup(email: string, password: string): Promise<void> {
-    return this.dataSource.signUp(email, password);
+  async signup(name: string, email: string, password: string): Promise<void> {
+    return this.dataSource.signUp(name,email, password);
   }
 
   async logout(): Promise<void> {
