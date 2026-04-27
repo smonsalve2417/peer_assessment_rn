@@ -5,7 +5,7 @@ import { useAuth } from "./features/auth/presentation/context/authContext";
 import LoginScreen from "./features/auth/presentation/screens/LoginScreen";
 import SignupScreen from "./features/auth/presentation/screens/SignupScreen";
 import HomeScreen from "./features/auth/presentation/screens/HomeScreen";
-import HomeStudentPage from "./features/home-student/presentation/pages/home_student_page";
+import HomeStudentPage from "./features/home-student/presentation/screens/home_student_page";
 
 const Stack = createStackNavigator();
 
