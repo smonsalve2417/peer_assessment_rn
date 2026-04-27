@@ -31,15 +31,27 @@ export class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         const refreshToken = data["refreshToken"];
         await this.prefs.storeData("token", token);
         await this.prefs.storeData("refreshToken", refreshToken);
-        //console.log("Token:", token, "\nRefresh Token:", refreshToken);
+        await this.prefs.storeData("userEmail", email);
         return Promise.resolve();
       } else {
         const body = await response.json();
         throw new Error(`Login error: ${body.message}`);
       }
     } catch (e: any) {
-      //console.error("Login failed", e);
       throw e;
+    }
+  }
+
+  async getCurrentUser(): Promise<{ email: string; name: string; password: string } | null> {
+    try {
+      const token = await this.prefs.retrieveData<string>("token");
+      if (!token) return null;
+      const email = await this.prefs.retrieveData<string>("userEmail");
+      if (!email) return null;
+      const name = (await this.prefs.retrieveData<string>("userName")) ?? email;
+      return { email, name, password: "" };
+    } catch {
+      return null;
     }
   }
 
@@ -48,14 +60,11 @@ export class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       const response = await fetch(`${this.baseUrl}/signup-direct`, {
         method: "POST",
         headers: { "Content-Type": "application/json; charset=UTF-8" },
-        body: JSON.stringify({
-          email: email,
-          name: name,
-          password: password,
-        }),
+        body: JSON.stringify({ email, name, password }),
       });
 
       if (response.status === 201) {
+        await this.prefs.storeData("userName", name);
         return this.login(email, password);
       } else {
         const body = await response.json();
@@ -80,7 +89,8 @@ export class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.status === 201) {
         await this.prefs.removeData("token");
         await this.prefs.removeData("refreshToken");
-        console.log("Logged out successfully");
+        await this.prefs.removeData("userEmail");
+        await this.prefs.removeData("userName");
         return Promise.resolve();
       } else {
         const body = await response.json();

@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await authRepo.login(email, password);
+      const user = await authRepo.getCurrentUser();
+      setLoggedUser(user);
       setIsLoggedIn(true);
     } catch (err: any) {
       setError(err?.message ?? "Login failed");
@@ -73,6 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await authRepo.signup(name, email, password);
+      const user = await authRepo.getCurrentUser();
+      setLoggedUser(user);
       setIsLoggedIn(true);
     } catch (err: any) {
       setError(err?.message ?? "Signup failed");
@@ -86,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await authRepo.logout();
+      setLoggedUser(null);
       setIsLoggedIn(false);
     } catch (err: any) {
       setError(err?.message ?? "Logout failed");

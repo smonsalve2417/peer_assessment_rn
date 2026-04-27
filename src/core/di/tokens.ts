@@ -3,5 +3,5 @@ export const TOKENS = {
   AuthRepo: Symbol("AuthRepo"),
   ProductRemoteDS: Symbol("ProductRemoteDS"),
   ProductRepo: Symbol("ProductRepo"),
-  // Add Product tokens if you want to DI those too...
+  HomeStudentRepo: Symbol("HomeStudentRepo"),
 } as const;

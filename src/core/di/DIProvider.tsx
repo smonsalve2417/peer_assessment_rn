@@ -4,6 +4,7 @@ import { TOKENS } from "./tokens";
 
 import { AuthRemoteDataSourceImpl } from "@/src/features/auth/data/datasources/AuthRemoteDataSourceImp";
 import { AuthRepositoryImpl } from "@/src/features/auth/data/repositories/AuthRepositoryImpl";
+import { HomeStudentBinding } from "@/src/features/home-student/presentation/context/home_student_binding";
 import { Container } from "./container";
 const DIContext = createContext<Container | null>(null);
 
@@ -14,8 +15,9 @@ export function DIProvider({ children }: { children: React.ReactNode }) {
 
     const authDS = new AuthRemoteDataSourceImpl();
     const authRepo = new AuthRepositoryImpl(authDS);
-
     c.register(TOKENS.AuthRemoteDS, authDS).register(TOKENS.AuthRepo, authRepo);
+
+    HomeStudentBinding.register(c);
 
     return c;
   }, []);
