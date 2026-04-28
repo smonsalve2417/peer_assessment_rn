@@ -1,9 +1,7 @@
 import { CourseGroup } from './course_group';
 
-export class GroupCategory {
-  constructor(
-    public name: string,
-    public source: string,
-    public groups: CourseGroup[],
-  ) {}
+export interface GroupCategory {
+  name: string;
+  source: string;
+  groups: CourseGroup[];
 }

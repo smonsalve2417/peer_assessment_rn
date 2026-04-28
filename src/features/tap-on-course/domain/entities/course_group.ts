@@ -1,9 +1,7 @@
 import { GroupMember } from './group_member';
 
-export class CourseGroup {
-  constructor(
-    public name: string,
-    public code: string,
-    public members: GroupMember[],
-  ) {}
+export interface CourseGroup {
+  name: string;
+  code: string;
+  members: GroupMember[];
 }

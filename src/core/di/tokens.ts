@@ -4,4 +4,5 @@ export const TOKENS = {
   ProductRemoteDS: Symbol("ProductRemoteDS"),
   ProductRepo: Symbol("ProductRepo"),
   HomeStudentRepo: Symbol("HomeStudentRepo"),
+  TapCourseRepo: Symbol("TapCourseRepo"),
 } as const;
