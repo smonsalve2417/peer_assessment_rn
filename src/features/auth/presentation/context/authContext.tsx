@@ -14,7 +14,8 @@ import { AuthRepository } from "../../domain/repositories/AuthRepository";
 export type AuthContextType = {
   loggedUser: AuthUser | null;
   isLoggedIn: boolean;
-  loading: boolean;
+  isStudent: boolean;
+  isLoading: boolean;
   error: string | null;
   clearError: () => void;
   login: (email: string, password: string) => Promise<void>;
@@ -22,12 +23,10 @@ export type AuthContextType = {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   validate: (email: string, validationCode: string) => Promise<string | null>;
-  getLoggedUser: () => Promise<any | null>;
+  getLoggedUser: () => Promise<AuthUser | null>;
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined,
-);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const di = useDI();
@@ -39,75 +38,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [loggedUser, setLoggedUser] = useState<AuthUser | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isStudent, setIsStudent] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = () => setError(null);
 
+  const getLoggedUser = async (): Promise<AuthUser | null> => {
+    setIsLoading(true);
+    try {
+      const user = await authRepo.getCurrentUser();
+      setLoggedUser(user);
+      if (user) setIsStudent(user.student);
+      return user;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     authRepo
-      .getCurrentUser()
-      .then((user) => {
-        setLoggedUser(user);
-        setIsLoggedIn(!!user);
+      .verifyToken()
+      .then(async (valid) => {
+        if (valid) {
+          await getLoggedUser();
+          setIsLoggedIn(true);
+        }
       })
-      .catch(() => setIsLoggedIn(false))
-      .finally(() => setLoading(false));
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
     clearError();
     try {
-      setLoading(true);
+      setIsLoading(true);
       await authRepo.login(email, password);
-      const user = await authRepo.getCurrentUser();
-      setLoggedUser(user);
+      await getLoggedUser();
       setIsLoggedIn(true);
     } catch (err: any) {
       setError(err?.message ?? "Login failed");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
     clearError();
     try {
-      setLoading(true);
+      setIsLoading(true);
       await authRepo.signup(name, email, password);
-      const user = await authRepo.getCurrentUser();
-      setLoggedUser(user);
-      setIsLoggedIn(true);
     } catch (err: any) {
       setError(err?.message ?? "Signup failed");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     clearError();
     try {
-      setLoading(true);
+      setIsLoading(true);
       await authRepo.logout();
       setLoggedUser(null);
       setIsLoggedIn(false);
     } catch (err: any) {
       setError(err?.message ?? "Logout failed");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const forgotPassword = async (email: string) => {
     clearError();
     try {
-      setLoading(true);
+      setIsLoading(true);
       await authRepo.forgotPassword(email);
     } catch (err: any) {
       setError(err?.message ?? "Failed to send password reset link");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -121,20 +131,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   };
 
-  const getLoggedUser = async () => {
-    try {
-      return await authRepo.getCurrentUser();
-    } catch (err) {
-      return null;
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
         loggedUser,
         isLoggedIn,
-        loading,
+        isStudent,
+        isLoading,
         error,
         clearError,
         login,
