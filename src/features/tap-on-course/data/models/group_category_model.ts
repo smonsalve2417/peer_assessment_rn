@@ -22,7 +22,7 @@ export class CourseGroupModel {
   ) {}
 
   toEntity(): CourseGroup {
-    return new CourseGroup(this.name, this.code, this.members.map((m) => m.toEntity()));
+    return { name: this.name, code: this.code, members: this.members.map((m) => m.toEntity()) };
   }
 }
 
@@ -34,6 +34,6 @@ export class GroupCategoryModel {
   ) {}
 
   toEntity(): GroupCategory {
-    return new GroupCategory(this.name, this.source, this.groups.map((g) => g.toEntity()));
+    return { name: this.name, source: this.source, groups: this.groups.map((g) => g.toEntity()) };
   }
 }
