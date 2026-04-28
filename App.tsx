@@ -1,13 +1,16 @@
-import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import {
+  DarkTheme,
+  DefaultTheme,
+  NavigationContainer,
+} from "@react-navigation/native";
 import React from "react";
-import { useColorScheme } from "react-native";
+import { useColorScheme, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
 
-
-import HomeScreen from "./src/features/home/HomeScreen";
 import { darkTheme, lightTheme } from "./src/theme/theme";
-
-
+import AuthFlow from "./src/AuthFlow";
+import { DIProvider } from "./src/core/di/DIProvider";
+import { AuthProvider } from "./src/features/auth/presentation/context/authContext";
 
 export default function App() {
   const scheme = useColorScheme();
@@ -29,10 +32,14 @@ export default function App() {
   };
 
   return (
-    <PaperProvider theme={theme}>
-      <NavigationContainer theme={navigationTheme}>
-        <HomeScreen />
-      </NavigationContainer>
-    </PaperProvider>
+    <DIProvider>
+      <AuthProvider>
+        <PaperProvider theme={theme}>
+          <NavigationContainer theme={navigationTheme}>
+            <AuthFlow />
+          </NavigationContainer>
+        </PaperProvider>
+      </AuthProvider>
+    </DIProvider>
   );
 }
