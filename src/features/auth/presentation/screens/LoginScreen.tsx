@@ -27,7 +27,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
   const { login, error, clearError } = useAuth();
 
   const [email, setEmail] = useState("augustosalazar@uninorte.edu.co");
-  const [password, setPassword] = useState("ThePassword!1");
+  const [password, setPassword] = useState("ThePassword!1.");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const showBackground = true;
