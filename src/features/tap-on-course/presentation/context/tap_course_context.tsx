@@ -197,13 +197,14 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
         courseName: course.name,
       });
     },
-    [navigation, course.name],
+    [navigation, course.name, loggedUser?.email],
   );
 
   const onViewResultsTapped = useCallback(
     (evaluation: CourseEvaluation) => {
       navigation.navigate("AnalyticsStudentScreen", {
         evaluationId: evaluation.id,
+        studentEmail: loggedUser?.email,
         evaluationName: evaluation.name,
         courseName: course.name,
         isPublic: evaluation.visibility === "public",

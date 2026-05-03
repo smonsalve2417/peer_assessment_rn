@@ -6,4 +6,5 @@ export const TOKENS = {
   HomeStudentRepo: Symbol("HomeStudentRepo"),
   TapCourseRepo: Symbol("TapCourseRepo"),
   EvalFormRepo: Symbol("EvalFormRepo"),
+  AnalyticsStudentRepo: Symbol("AnalyticsStudentRepo"),
 } as const;

@@ -7,6 +7,7 @@ import { AuthRepositoryImpl } from "@/src/features/auth/data/repositories/AuthRe
 import { HomeStudentBinding } from "@/src/features/home-student/presentation/context/home_student_binding";
 import { TapCourseBinding } from "@/src/features/tap-on-course/presentation/context/tap_course_binding";
 import { EvalFormBinding } from "@/src/features/eval-form/presentation/context/eval_form_binding";
+import { AnalyticsStudentBinding } from "@/src/features/analytics-student/presentation/context/analytics_student_binding";
 import { Container } from "./container";
 const DIContext = createContext<Container | null>(null);
 
@@ -22,6 +23,7 @@ export function DIProvider({ children }: { children: React.ReactNode }) {
     HomeStudentBinding.register(c);
     TapCourseBinding.register(c);
     EvalFormBinding.register(c);
+    AnalyticsStudentBinding.register(c);
 
     return c;
   }, []);
