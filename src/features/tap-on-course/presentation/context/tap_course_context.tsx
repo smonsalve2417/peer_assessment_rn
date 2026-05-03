@@ -1,5 +1,5 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
-import * as DocumentPicker from 'expo-document-picker'; 
+import { useNavigation, useRoute } from "@react-navigation/native";
+import * as DocumentPicker from "expo-document-picker";
 import React, {
   createContext,
   useCallback,
@@ -7,17 +7,19 @@ import React, {
   useEffect,
   useMemo,
   useState,
-} from 'react';
-import { useDI } from '@/src/core/di/DIProvider';
-import { TOKENS } from '@/src/core/di/tokens';
-import { useAuth } from '@/src/features/auth/presentation/context/authContext';
-import { TapCourseRepository } from '../../domain/repositories/tap_course_repository';
-import { GetCourseEvaluations } from '../../domain/usecases/get_course_evaluations';
-import { GetCourseGroups } from '../../domain/usecases/get_course_groups';
-import { ImportGroupsFromCsv } from '../../domain/usecases/import_groups_from_csv';
-import { CourseEvaluation } from '../../domain/entities/course_evaluation';
-import { GroupCategory } from '../../domain/entities/group_category';
-import { CourseUI } from '../models/course_ui';
+} from "react";
+import { useDI } from "@/src/core/di/DIProvider";
+import { TOKENS } from "@/src/core/di/tokens";
+import { useAuth } from "@/src/features/auth/presentation/context/authContext";
+import { EvalFormRepository } from "@/src/features/eval-form/domain/repositories/eval_form_repository";
+import { GetSubmittedEvaluationIds } from "@/src/features/eval-form/domain/usecases/get_submitted_evaluation_ids";
+import { TapCourseRepository } from "../../domain/repositories/tap_course_repository";
+import { GetCourseEvaluations } from "../../domain/usecases/get_course_evaluations";
+import { GetCourseGroups } from "../../domain/usecases/get_course_groups";
+import { ImportGroupsFromCsv } from "../../domain/usecases/import_groups_from_csv";
+import { CourseEvaluation } from "../../domain/entities/course_evaluation";
+import { GroupCategory } from "../../domain/entities/group_category";
+import { CourseUI } from "../models/course_ui";
 
 type SnackMessage = { title: string; body: string };
 
@@ -44,7 +46,9 @@ type TapCourseContextType = {
   onCreateEvaluationTapped: () => Promise<void>;
 };
 
-const TapCourseContext = createContext<TapCourseContextType | undefined>(undefined);
+const TapCourseContext = createContext<TapCourseContextType | undefined>(
+  undefined,
+);
 
 export function TapCourseProvider({ children }: { children: React.ReactNode }) {
   const { loggedUser, isStudent } = useAuth();
@@ -59,9 +63,23 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
     () => di.resolve<TapCourseRepository>(TOKENS.TapCourseRepo),
     [di],
   );
-  const getCourseEvaluationsUC = useMemo(() => new GetCourseEvaluations(repo), [repo]);
+  const evalFormRepo = useMemo(
+    () => di.resolve<EvalFormRepository>(TOKENS.EvalFormRepo),
+    [di],
+  );
+  const getCourseEvaluationsUC = useMemo(
+    () => new GetCourseEvaluations(repo),
+    [repo],
+  );
   const getCourseGroupsUC = useMemo(() => new GetCourseGroups(repo), [repo]);
-  const importGroupsFromCsvUC = useMemo(() => new ImportGroupsFromCsv(repo), [repo]);
+  const importGroupsFromCsvUC = useMemo(
+    () => new ImportGroupsFromCsv(repo),
+    [repo],
+  );
+  const getSubmittedEvaluationIdsUC = useMemo(
+    () => new GetSubmittedEvaluationIds(evalFormRepo),
+    [evalFormRepo],
+  );
 
   const [selectedTab, setSelectedTab] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,16 +89,18 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
   const [submittedIds, setSubmittedIds] = useState<Set<string>>(new Set());
   const [snackMessage, setSnackMessage] = useState<SnackMessage | null>(null);
 
-  const enrollmentCode = `DS-${course.period.split('-')[0]}-xka`;
+  const enrollmentCode = `DS-${course.period.split("-")[0]}-xka`;
   const groupCategoriesCount = groupCategories.length;
 
   const visibleGroupCategories = useMemo(() => {
     if (isProfessor) return groupCategories;
-    const email = (loggedUser?.email ?? '').toLowerCase();
+    const email = (loggedUser?.email ?? "").toLowerCase();
     return groupCategories
       .map((cat) => ({
         ...cat,
-        groups: cat.groups.filter((g) => g.members.some((m) => m.email.toLowerCase() === email)),
+        groups: cat.groups.filter((g) =>
+          g.members.some((m) => m.email.toLowerCase() === email),
+        ),
       }))
       .filter((cat) => cat.groups.length > 0);
   }, [groupCategories, isProfessor, loggedUser?.email]);
@@ -93,6 +113,11 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
+      const submittedIds =
+        !isProfessor && loggedUser?.email
+          ? await getSubmittedEvaluationIdsUC.call(loggedUser.email)
+          : new Set<string>();
+
       const [evals, groups] = await Promise.all([
         getCourseEvaluationsUC.call(course.id),
         getCourseGroupsUC.call(course.id),
@@ -101,15 +126,21 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
       setGroupCategories(groups);
 
       // TODO: load submitted evaluation ids once eval-form feature is available
-      if (!isProfessor && loggedUser?.email) {
-        setSubmittedIds(new Set());
-      }
+
+      setSubmittedIds(submittedIds);
     } catch (e) {
-      console.error('TapCourseContext loadData error:', e);
+      console.error("TapCourseContext loadData error:", e);
     } finally {
       setIsLoading(false);
     }
-  }, [course.id, isProfessor, loggedUser, getCourseEvaluationsUC, getCourseGroupsUC]);
+  }, [
+    course.id,
+    isProfessor,
+    loggedUser,
+    getCourseEvaluationsUC,
+    getCourseGroupsUC,
+    getSubmittedEvaluationIdsUC,
+  ]);
 
   useEffect(() => {
     loadData();
@@ -120,7 +151,7 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
 
   const onAddGroupsTapped = useCallback(async () => {
     const result = await DocumentPicker.getDocumentAsync({
-      type: 'text/csv',
+      type: "text/csv",
       copyToCacheDirectory: true,
     });
 
@@ -136,8 +167,8 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
 
       if (imported.length === 0) {
         setSnackMessage({
-          title: 'Already imported',
-          body: 'This CSV has already been uploaded for this course.',
+          title: "Already imported",
+          body: "This CSV has already been uploaded for this course.",
         });
         return;
       }
@@ -149,11 +180,11 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
       });
 
       setSnackMessage({
-        title: 'Groups imported',
-        body: `${imported.length} group ${imported.length === 1 ? 'category' : 'categories'} added from Brightspace.`,
+        title: "Groups imported",
+        body: `${imported.length} group ${imported.length === 1 ? "category" : "categories"} added from Brightspace.`,
       });
     } catch (e) {
-      console.error('onAddGroupsTapped error:', e);
+      console.error("onAddGroupsTapped error:", e);
     } finally {
       setIsImporting(false);
     }
@@ -161,7 +192,7 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
 
   const onEvaluateTapped = useCallback(
     (evaluation: CourseEvaluation) => {
-      navigation.navigate('EvalFormScreen', {
+      navigation.navigate("EvalFormScreen", {
         evaluation,
         courseName: course.name,
       });
@@ -171,11 +202,11 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
 
   const onViewResultsTapped = useCallback(
     (evaluation: CourseEvaluation) => {
-      navigation.navigate('AnalyticsStudentScreen', {
+      navigation.navigate("AnalyticsStudentScreen", {
         evaluationId: evaluation.id,
         evaluationName: evaluation.name,
         courseName: course.name,
-        isPublic: evaluation.visibility === 'public',
+        isPublic: evaluation.visibility === "public",
       });
     },
     [navigation, course.name],
@@ -183,7 +214,7 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
 
   const onViewEvaluationResultsTapped = useCallback(
     (evaluation: CourseEvaluation) => {
-      navigation.navigate('AnalyticsTeacherScreen', {
+      navigation.navigate("AnalyticsTeacherScreen", {
         courseId: course.id,
         courseName: course.name,
         evalIdToName: { [evaluation.id]: evaluation.name },
@@ -193,8 +224,10 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
   );
 
   const onViewTeacherAnalyticsTapped = useCallback(() => {
-    const evalIdToName = Object.fromEntries(evaluations.map((e) => [e.id, e.name]));
-    navigation.navigate('AnalyticsTeacherScreen', {
+    const evalIdToName = Object.fromEntries(
+      evaluations.map((e) => [e.id, e.name]),
+    );
+    navigation.navigate("AnalyticsTeacherScreen", {
       courseId: course.id,
       courseName: course.name,
       evalIdToName,
@@ -202,7 +235,7 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
   }, [navigation, course.id, course.name, evaluations]);
 
   const onCreateEvaluationTapped = useCallback(async () => {
-    const created = await navigation.navigate('CreateEvaluationScreen', {
+    const created = await navigation.navigate("CreateEvaluationScreen", {
       course,
       groupCategories,
     });
@@ -244,6 +277,7 @@ export function TapCourseProvider({ children }: { children: React.ReactNode }) {
 
 export function useTapCourse(): TapCourseContextType {
   const ctx = useContext(TapCourseContext);
-  if (!ctx) throw new Error('useTapCourse must be used inside TapCourseProvider');
+  if (!ctx)
+    throw new Error("useTapCourse must be used inside TapCourseProvider");
   return ctx;
 }

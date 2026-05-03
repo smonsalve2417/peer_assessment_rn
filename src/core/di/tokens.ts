@@ -5,4 +5,5 @@ export const TOKENS = {
   ProductRepo: Symbol("ProductRepo"),
   HomeStudentRepo: Symbol("HomeStudentRepo"),
   TapCourseRepo: Symbol("TapCourseRepo"),
+  EvalFormRepo: Symbol("EvalFormRepo"),
 } as const;
