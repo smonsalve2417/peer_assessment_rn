@@ -38,7 +38,7 @@ export class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  async getCurrentUser(): Promise<{ email: string; name: string; password: string; student: boolean } | null> {
+  async getCurrentUser(): Promise<{ userId: string; email: string; name: string; password: string; student: boolean } | null> {
     const token = await this.prefs.retrieveData<string>("token");
     if (!token) return null;
     const userId = await this.prefs.retrieveData<string>("userId");
@@ -53,7 +53,7 @@ export class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       const rows: any[] = await response.json();
       const user = rows[0];
       if (!user) return null;
-      return { email: user["email"], name: user["name"], password: "", student: user["student"] ?? true };
+      return { userId, email: user["email"], name: user["name"], password: "", student: user["student"] ?? true };
     }
 
     return null;
