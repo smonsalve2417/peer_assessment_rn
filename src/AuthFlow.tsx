@@ -10,6 +10,7 @@ import HomeProfessorPage from "./features/home-profesor/presentation/screens/hom
 import TapCourseScreen from "./features/tap-on-course/presentation/screens/tap_course_screen";
 import EvalFormScreen from "./features/eval-form/presentation/screens/eval_form_screen";
 import AnalyticsStudentScreen from "./features/analytics-student/presentation/screens/AnalyticsStudentScreen";
+import CreateEvaluationScreen from "./features/create-eval/presentation/screens/create_eval_screen";
 
 const Stack = createStackNavigator();
 
@@ -32,6 +33,7 @@ export default function AuthFlow() {
             name="AnalyticsStudentScreen"
             component={AnalyticsStudentScreen}
           />
+          <Stack.Screen name="CreateEvaluationScreen" component={CreateEvaluationScreen} />
         </>
       ) : (
         <>

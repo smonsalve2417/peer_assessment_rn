@@ -9,6 +9,7 @@ import { TapCourseBinding } from "@/src/features/tap-on-course/presentation/cont
 import { EvalFormBinding } from "@/src/features/eval-form/presentation/context/eval_form_binding";
 import { AnalyticsStudentBinding } from "@/src/features/analytics-student/presentation/context/analytics_student_binding";
 import { HomeProfessorBinding } from "@/src/features/home-profesor/presentation/context/home_professor_binding";
+import { CreateEvaluationBinding } from "@/src/features/create-eval/data/datasources/create_evaluation_binding";
 import { Container } from "./container";
 const DIContext = createContext<Container | null>(null);
 
@@ -22,7 +23,7 @@ export function DIProvider({ children }: { children: React.ReactNode }) {
     c.register(TOKENS.AuthRemoteDS, authDS).register(TOKENS.AuthRepo, authRepo);
 
     HomeProfessorBinding.register(c);
-
+    CreateEvaluationBinding.register(c);
     HomeStudentBinding.register(c);
     TapCourseBinding.register(c);
     EvalFormBinding.register(c);

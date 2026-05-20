@@ -8,4 +8,5 @@ export const TOKENS = {
   TapCourseRepo: Symbol("TapCourseRepo"),
   EvalFormRepo: Symbol("EvalFormRepo"),
   AnalyticsStudentRepo: Symbol("AnalyticsStudentRepo"),
+  CreateEvaluationRepo: Symbol("CreateEvaluationRepo"),
 } as const;
