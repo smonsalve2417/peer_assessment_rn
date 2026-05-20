@@ -9,4 +9,5 @@ export const TOKENS = {
   EvalFormRepo: Symbol("EvalFormRepo"),
   AnalyticsStudentRepo: Symbol("AnalyticsStudentRepo"),
   CreateEvaluationRepo: Symbol("CreateEvaluationRepo"),
+  AnalyticsTeacherRepo: Symbol("AnalyticsTeacherRepo"),
 } as const;

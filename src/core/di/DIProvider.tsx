@@ -10,6 +10,7 @@ import { EvalFormBinding } from "@/src/features/eval-form/presentation/context/e
 import { AnalyticsStudentBinding } from "@/src/features/analytics-student/presentation/context/analytics_student_binding";
 import { HomeProfessorBinding } from "@/src/features/home-profesor/presentation/context/home_professor_binding";
 import { CreateEvaluationBinding } from "@/src/features/create-eval/data/datasources/create_evaluation_binding";
+import { AnalyticsTeacherBinding } from "@/src/features/analytics-teacher/data/datasources/analytics_teacher_binding";
 import { Container } from "./container";
 const DIContext = createContext<Container | null>(null);
 
@@ -28,6 +29,7 @@ export function DIProvider({ children }: { children: React.ReactNode }) {
     TapCourseBinding.register(c);
     EvalFormBinding.register(c);
     AnalyticsStudentBinding.register(c);
+    AnalyticsTeacherBinding.register(c);
 
     return c;
   }, []);

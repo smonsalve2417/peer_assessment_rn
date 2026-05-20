@@ -11,6 +11,7 @@ import TapCourseScreen from "./features/tap-on-course/presentation/screens/tap_c
 import EvalFormScreen from "./features/eval-form/presentation/screens/eval_form_screen";
 import AnalyticsStudentScreen from "./features/analytics-student/presentation/screens/AnalyticsStudentScreen";
 import CreateEvaluationScreen from "./features/create-eval/presentation/screens/create_eval_screen";
+import AnalyticsTeacherScreen from "./features/analytics-teacher/presentation/screens/AnalyticsTeacherScreen";
 
 const Stack = createStackNavigator();
 
@@ -18,7 +19,9 @@ export default function AuthFlow() {
   const { isLoggedIn, isStudent } = useAuth();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ 
+    headerShown: false,
+    animation: 'none',}}>
       {isLoggedIn ? (
         <>
           {/* La primera Screen es la que se muestra al entrar */}
@@ -34,6 +37,7 @@ export default function AuthFlow() {
             component={AnalyticsStudentScreen}
           />
           <Stack.Screen name="CreateEvaluationScreen" component={CreateEvaluationScreen} />
+          <Stack.Screen name="AnalyticsTeacherScreen" component={AnalyticsTeacherScreen} />
         </>
       ) : (
         <>
