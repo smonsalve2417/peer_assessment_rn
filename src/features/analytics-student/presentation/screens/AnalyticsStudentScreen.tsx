@@ -99,7 +99,8 @@ const AnalyticsStudentScreen: React.FC = () => {
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backBtn}
+          style={styles.backBtn }
+          testID="back-button"
         >
           <Text style={{ color: "white", fontSize: 20 }}>{"<"}</Text>
         </TouchableOpacity>

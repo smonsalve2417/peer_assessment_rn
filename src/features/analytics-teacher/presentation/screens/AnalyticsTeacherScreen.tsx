@@ -63,7 +63,7 @@ function AnalyticsTeacherContent() {
 function Header({ courseName, subtitle, onBack }: { courseName: string; subtitle: string; onBack: () => void }) {
   return (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.8} testID="back-button" >
         <Ionicons name="chevron-back" color="#ffffff" size={22} />
       </TouchableOpacity>
       <View style={styles.headerGap} />

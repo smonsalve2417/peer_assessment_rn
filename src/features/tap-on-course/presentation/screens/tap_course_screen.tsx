@@ -66,7 +66,7 @@ function CourseHeader() {
 
   return (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} testID="back-button">
         <Text style={styles.backIcon}>‹</Text>
       </TouchableOpacity>
 
