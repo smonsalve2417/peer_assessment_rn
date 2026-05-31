@@ -1,4 +1,5 @@
-# Welcome to your Expo app 👋
+- Vídeo con app en RN en modo profe contra app de flutter en modo estudiante
+- Video con las pruebas de RN
 
 <a href="https://youtu.be/kxM6E9hnXjc">
   <img src="https://img.youtube.com/vi/kxM6E9hnXjc/0.jpg" width="250"/>
