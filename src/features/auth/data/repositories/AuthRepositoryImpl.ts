@@ -14,7 +14,7 @@ export class AuthRepositoryImpl implements AuthRepository {
   }
 
   async signup(name: string, email: string, password: string): Promise<void> {
-    return this.dataSource.signUp(name,email, password);
+    return this.dataSource.signUp(name, email, password);
   }
 
   async logout(): Promise<void> {
@@ -31,5 +31,9 @@ export class AuthRepositoryImpl implements AuthRepository {
 
   async validate(email: string, validationCode: string): Promise<void> {
     return this.dataSource.validate(email, validationCode);
+  }
+
+  async verifyToken(): Promise<boolean> {
+    return this.dataSource.verifyToken();
   }
 }

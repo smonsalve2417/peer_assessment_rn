@@ -1,4 +1,13 @@
-# Welcome to your Expo app 👋
+- Vídeo con app en RN en modo profe contra app de flutter en modo estudiante
+- Video con las pruebas de RN
+
+<a href="https://youtu.be/kxM6E9hnXjc">
+  <img src="https://img.youtube.com/vi/kxM6E9hnXjc/0.jpg" width="250"/>
+</a>
+
+<a href="https://youtu.be/odht1NBtvVo">
+  <img src="https://img.youtube.com/vi/odht1NBtvVo/0.jpg" width="250"/>
+</a>
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 

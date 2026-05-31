@@ -5,8 +5,15 @@ import { TOKENS } from "./tokens";
 import { AuthRemoteDataSourceImpl } from "@/src/features/auth/data/datasources/AuthRemoteDataSourceImp";
 import { AuthRepositoryImpl } from "@/src/features/auth/data/repositories/AuthRepositoryImpl";
 import { HomeStudentBinding } from "@/src/features/home-student/presentation/context/home_student_binding";
+import { TapCourseBinding } from "@/src/features/tap-on-course/presentation/context/tap_course_binding";
+import { EvalFormBinding } from "@/src/features/eval-form/presentation/context/eval_form_binding";
+import { AnalyticsStudentBinding } from "@/src/features/analytics-student/presentation/context/analytics_student_binding";
+import { HomeProfessorBinding } from "@/src/features/home-profesor/presentation/context/home_professor_binding";
+import { CreateEvaluationBinding } from "@/src/features/create-eval/data/datasources/create_evaluation_binding";
+import { AnalyticsTeacherBinding } from "@/src/features/analytics-teacher/data/datasources/analytics_teacher_binding";
 import { Container } from "./container";
-const DIContext = createContext<Container | null>(null);
+
+export const DIContext = createContext<Container | null>(null);
 
 export function DIProvider({ children }: { children: React.ReactNode }) {
   //useMemo is a React Hook that lets you cache the result of a calculation between re-renders.
@@ -17,7 +24,13 @@ export function DIProvider({ children }: { children: React.ReactNode }) {
     const authRepo = new AuthRepositoryImpl(authDS);
     c.register(TOKENS.AuthRemoteDS, authDS).register(TOKENS.AuthRepo, authRepo);
 
+    HomeProfessorBinding.register(c);
+    CreateEvaluationBinding.register(c);
     HomeStudentBinding.register(c);
+    TapCourseBinding.register(c);
+    EvalFormBinding.register(c);
+    AnalyticsStudentBinding.register(c);
+    AnalyticsTeacherBinding.register(c);
 
     return c;
   }, []);

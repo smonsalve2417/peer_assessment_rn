@@ -10,11 +10,13 @@ import React, {
 import { useDI } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { useAuth } from "@/src/features/auth/presentation/context/authContext";
+import { EvalFormRepository } from "@/src/features/eval-form/domain/repositories/eval_form_repository";
 import { HomeStudentRepository } from "../../domain/repositories/home_student_repository";
 import { GetActiveEvaluations } from "../../domain/usecases/get_active_evaluations";
 import { GetEnrolledCourses } from "../../domain/usecases/get_enrolled_courses";
 import { Course } from "../../domain/entities/course";
 import { Evaluation } from "../../domain/entities/evaluation";
+import { GetSubmittedEvaluationIds } from "@/src/features/eval-form/domain/usecases/get_submitted_evaluation_ids";
 
 type HomeStudentContextType = {
   evaluations: Evaluation[];
@@ -27,23 +29,44 @@ type HomeStudentContextType = {
   navigateToCourse: (course: Course) => void;
 };
 
-const HomeStudentContext = createContext<HomeStudentContextType | undefined>(undefined);
+const HomeStudentContext = createContext<HomeStudentContextType | undefined>(
+  undefined,
+);
 
-export function HomeStudentProvider({ children }: { children: React.ReactNode }) {
+export function HomeStudentProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { loggedUser } = useAuth();
   const di = useDI();
   const navigation = useNavigation<any>();
 
   const repo = useMemo(
     () => di.resolve<HomeStudentRepository>(TOKENS.HomeStudentRepo),
-    [di]
+    [di],
   );
-  const getActiveEvaluationsUC = useMemo(() => new GetActiveEvaluations(repo), [repo]);
-  const getEnrolledCoursesUC = useMemo(() => new GetEnrolledCourses(repo), [repo]);
+  const evalFormRepo = useMemo(
+    () => di.resolve<EvalFormRepository>(TOKENS.EvalFormRepo),
+    [di],
+  );
+  const getActiveEvaluationsUC = useMemo(
+    () => new GetActiveEvaluations(repo),
+    [repo],
+  );
+  const getEnrolledCoursesUC = useMemo(
+    () => new GetEnrolledCourses(repo),
+    [repo],
+  );
+  const getSubmittedEvaluationIdsUC = useMemo(
+    () => new GetSubmittedEvaluationIds(evalFormRepo),
+    [evalFormRepo],
+  );
 
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [submittedIds, setSubmittedIds] = useState<Set<string>>(new Set());
 
   const studentName = loggedUser?.name ?? "default user";
 
@@ -62,18 +85,25 @@ export function HomeStudentProvider({ children }: { children: React.ReactNode })
     }
     setIsLoading(true);
     try {
+      const submittedIds = await getSubmittedEvaluationIdsUC.call(studentEmail);
       const [evals, courseList] = await Promise.all([
-        getActiveEvaluationsUC.call(studentEmail, new Set<string>()),
+        getActiveEvaluationsUC.call(studentEmail, submittedIds),
         getEnrolledCoursesUC.call(studentEmail),
       ]);
       setEvaluations(evals);
       setCourses(courseList);
+      setSubmittedIds(submittedIds);
     } catch (e) {
       console.error("HomeStudentController loadData error:", e);
     } finally {
       setIsLoading(false);
     }
-  }, [loggedUser, getActiveEvaluationsUC, getEnrolledCoursesUC]);
+  }, [
+    loggedUser,
+    getActiveEvaluationsUC,
+    getEnrolledCoursesUC,
+    getSubmittedEvaluationIdsUC,
+  ]);
 
   useEffect(() => {
     loadData();
@@ -93,7 +123,7 @@ export function HomeStudentProvider({ children }: { children: React.ReactNode })
         courseName: evaluation.courseName,
       });
     },
-    [navigation]
+    [navigation],
   );
 
   const navigateToCourse = useCallback(
@@ -107,7 +137,7 @@ export function HomeStudentProvider({ children }: { children: React.ReactNode })
         activeEvaluations: course.activeEvaluations,
       });
     },
-    [navigation]
+    [navigation],
   );
 
   return (
@@ -130,6 +160,7 @@ export function HomeStudentProvider({ children }: { children: React.ReactNode })
 
 export function useHomeStudent(): HomeStudentContextType {
   const ctx = useContext(HomeStudentContext);
-  if (!ctx) throw new Error("useHomeStudent must be used inside HomeStudentProvider");
+  if (!ctx)
+    throw new Error("useHomeStudent must be used inside HomeStudentProvider");
   return ctx;
 }
