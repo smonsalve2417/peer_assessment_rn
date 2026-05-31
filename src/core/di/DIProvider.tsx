@@ -12,7 +12,8 @@ import { HomeProfessorBinding } from "@/src/features/home-profesor/presentation/
 import { CreateEvaluationBinding } from "@/src/features/create-eval/data/datasources/create_evaluation_binding";
 import { AnalyticsTeacherBinding } from "@/src/features/analytics-teacher/data/datasources/analytics_teacher_binding";
 import { Container } from "./container";
-const DIContext = createContext<Container | null>(null);
+
+export const DIContext = createContext<Container | null>(null);
 
 export function DIProvider({ children }: { children: React.ReactNode }) {
   //useMemo is a React Hook that lets you cache the result of a calculation between re-renders.
